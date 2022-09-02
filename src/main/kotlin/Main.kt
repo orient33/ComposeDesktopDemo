@@ -1,4 +1,3 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 import androidx.compose.material.MaterialTheme
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
@@ -6,35 +5,50 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 
+const val DEFAULT_TITLE = "calculator DP - PX"
+
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
+    var text by remember { mutableStateOf(DEFAULT_TITLE) }
     val vm = Model()
     val out = vm.text.collectAsState()
+    val mem = vm.mem.collectAsState()
     MaterialTheme {
         Column {
             Button(onClick = {
-                text = "Hello, Desktop!"
+                text = if (!mem.value) "dump Memory" else DEFAULT_TITLE
+                vm.switchFunc()
             }) {
                 Text(text)
             }
-            TextField(out.value.toString(), onValueChange = { v -> vm.updateInput(v) })
-            Text("${out.value} * 2.75 = ${out.value * 2.75f} ")
-            Text("${out.value} * 3 = ${out.value * 3} ")
-            Text("${out.value} / 2.75 = ${out.value / 2.75f} ")
-            Text("${out.value} / 3 = ${out.value / 3} ")
+            if (mem.value) {
+                MemRoot()
+            } else {
+                TextField(
+                    out.value.toString(),
+                    onValueChange = { v -> vm.updateInput(v) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                Text("${out.value} * 2.75 = ${out.value * 2.75f} ")
+                Text("${out.value} * 3 = ${out.value * 3} ")
+                Text("${out.value} / 2.75 = ${out.value / 2.75f} ")
+                Text("${out.value} / 3 = ${out.value / 3} ")
 //            TableScreen()
+            }
         }
     }
 }
