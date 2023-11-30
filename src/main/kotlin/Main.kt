@@ -1,53 +1,64 @@
-import androidx.compose.material.MaterialTheme
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import sysui.sysuiToolsView
 
 const val DEFAULT_TITLE = "calculator DP - PX"
+
+val vm = Model()
 
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf(DEFAULT_TITLE) }
-    val vm = Model()
+    val text = vm.tabName.collectAsState()
     val out = vm.text.collectAsState()
-    val mem = vm.mem.collectAsState()
+    val tab = vm.tab.collectAsState()
     MaterialTheme {
         Column {
-            Button(onClick = {
-                text = if (!mem.value) "dump Memory" else DEFAULT_TITLE
-                vm.switchFunc()
-            }) {
-                Text(text)
+            Button(
+                onClick = {
+                    vm.switchFunc()
+                },
+                modifier = Modifier.padding(10.dp, 0.dp).padding(0.dp)
+            ) {
+                Text(text.value)
             }
-            if (mem.value) {
-                MemRoot()
-            } else {
-                TextField(
-                    out.value.toString(),
-                    onValueChange = { v -> vm.updateInput(v) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                Text("${out.value} * 2.75 = ${out.value * 2.75f} ")
-                Text("${out.value} * 3 = ${out.value * 3} ")
-                Text("${out.value} / 2.75 = ${out.value / 2.75f} ")
-                Text("${out.value} / 3 = ${out.value / 3} ")
-//            TableScreen()
+            when (tab.value) {
+                TAB_MEM -> {
+                    MemRoot()
+                }
+
+                TAB_CAL -> {
+                    TextField(
+                        out.value.toString(),
+                        onValueChange = { v -> vm.updateInput(v) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                    Text("${out.value} * 2.75 = ${out.value * 2.75f} ")
+                    Text("${out.value} * 3 = ${out.value * 3} ")
+                    Text("${out.value} / 2.75 = ${out.value / 2.75f} ")
+                    Text("${out.value} / 3 = ${out.value / 3} ")
+                }
+
+                TAB_SYS -> {
+                    sysuiToolsView()
+                }
             }
         }
     }
@@ -56,7 +67,7 @@ fun App() {
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "ComposeDesktop1"
+        title = "几个工具"
     ) {
         App()
     }
@@ -74,7 +85,7 @@ fun RowScope.TableCell(text: String, weight: Float) {
 
 @Composable
 fun TableScreen() {
-    val tableData = (1..10).mapIndexed { index, i ->
+    val tableData = (1..10).mapIndexed { index, _ ->
         index to "Item $index"
     }
     val c1 = .3f
