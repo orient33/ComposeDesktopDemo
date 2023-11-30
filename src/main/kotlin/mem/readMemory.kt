@@ -3,6 +3,7 @@ package mem
 import isAllNumber
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 val flag = AtomicBoolean(false)
@@ -37,20 +38,30 @@ suspend fun readMemory(packageName: String, flow: MutableStateFlow<MutableList<M
     var memInfo: MemInfo?
     val list = mutableListOf<MemInfo>()
     flag.set(true)
+    val file = File("~/temp/$packageName-meminfo.log")
+    if (file.exists()) {
+        file.delete()
+    }
+    val r = try {
+        file.createNewFile()
+    } catch (e: Exception) {
+        mylog("create file fail. $e")
+        false
+    }
     do {
-        memInfo = readMemForPid(adbPath, pid)
+        memInfo = readMemForPid(adbPath, pid, if (r) file else null)
         if (memInfo != null) {
             val list2 = mutableListOf<MemInfo>()
-            list2.addAll(list)
             list2.add(memInfo)
+            list2.addAll(list)
             flow.tryEmit(list2)
-            list.add(memInfo)
+            list.add(0, memInfo)
             mylog("${memInfo.totalPss}")
         } else {
             mylog("meminfo null.. break")
             break
         }
-        delay(1000)
+        delay(500)
     } while (count-- > 0 && flag.get())
     return flag.get()
 }
@@ -63,7 +74,7 @@ fun mylog(msg: String) {
     println("pid= ${ProcessHandle.current().pid()}, tid=${Thread.currentThread()} $msg")
 }
 
-fun readMemForPid(adbPath: String, pid: Int): MemInfo? {
+fun readMemForPid(adbPath: String, pid: Int, file: File?): MemInfo? {
     val memResult = RunShell.runCmd("$adbPath shell dumpsys meminfo $pid")
     val timeline = System.currentTimeMillis() // 使用android设备的时间 ?
     if (memResult.length < 10) return null
@@ -76,6 +87,10 @@ fun readMemForPid(adbPath: String, pid: Int): MemInfo? {
     var system = 0
     var totalPss = 0
 //    val objects = mutableMapOf<String, Int>()
+    if (file != null)
+        file.appendText(memResult + "\n\n")
+    else
+        mylog(memResult)
     memResult.split('\n').forEach {
         val line = it.trim()
         if (line.length > 1) {

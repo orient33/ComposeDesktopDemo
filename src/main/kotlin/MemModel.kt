@@ -12,7 +12,7 @@ const val STATE_ERROR = 2
 
 class MemModel {
 
-    private val pkgNameL = MutableStateFlow("systemui")
+    private val pkgNameL = MutableStateFlow("thememanager")
     val pkgName: StateFlow<String> = pkgNameL
 
     fun updatePackageName(value: String) {
