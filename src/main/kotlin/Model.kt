@@ -2,8 +2,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import mem.mylog
 
+const val DEFAULT_TAB = TAB_TOOL
 class Model {
-    val tabName = MutableStateFlow(DEFAULT_TITLE)
+    val tabName = MutableStateFlow(tabName(DEFAULT_TAB))
     private val input = MutableStateFlow(0f)
     val text: StateFlow<Float> = input
 
@@ -18,7 +19,7 @@ class Model {
     }
 
     //------mem ------
-    private val tabPriv = MutableStateFlow(TAB_CAL)
+    private val tabPriv = MutableStateFlow(DEFAULT_TAB)
     val tab: StateFlow<Int> = tabPriv
 
     private val pkgNameL = MutableStateFlow("")

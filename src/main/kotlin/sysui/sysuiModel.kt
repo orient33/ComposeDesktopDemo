@@ -8,8 +8,9 @@ import kotlinx.coroutines.launch
 import mem.RunShell
 
 class SysModel {
+    var logLine = 1
     val sysApkPath =
-        MutableStateFlow("~/code.mi/MiuiSystemUI/packages/SystemUI/build/outputs/apk/overlayMiuiCnTablet/debug/MiuiSystemUI.apk")
+        MutableStateFlow("/home/dun/code.mi/MiuiSystemUI/packages/SystemUI/build/outputs/apk/overlayMiuiCnTablet/debug/MiuiSystemUI.apk")
     val logText = MutableStateFlow("")
     fun updateApkPath(path: String) {
         sysApkPath.tryEmit(path)
@@ -18,10 +19,10 @@ class SysModel {
     fun pushSystemUiPad() {
         GlobalScope.launch(Dispatchers.IO) {
             //从桌面启动的path还不对 需要从终端/opt/composedeskdemo/bin/Com.. 启动 才可以正常运行 TODO
-            listOf("HOME","PATH").forEach {
-                val v = System.getenv(it)
-                appendLog("$it : $v\n")
-            }
+//            listOf("HOME","PATH").forEach {
+//                val v = System.getenv(it)
+//                appendLog("$it : $v\n")
+//            }
             //1 adb root , remount
             val r1 = RunShell.runCmd("adb root && adb wait-for-device && adb remount && adb wait-for-device")
             appendLog(r1)
@@ -33,6 +34,13 @@ class SysModel {
                 )
             )
             appendLog(r2)
+            //3. check apk time
+            val r3 = RunShell.runCmd(
+                "adb shell ", arrayOf(
+                    " ls /system_ext/priv-app/MiuiSystemUI/MiuiSystemUI.apk -lsh"
+                )
+            )
+            appendLog(r3)
         }
 
     }
@@ -53,7 +61,7 @@ class SysModel {
                     Int.MAX_VALUE
                 }
             }
-            appendLog("push done, pid is $pid")
+            appendLog("check, pid is $pid")
 
             //2 push apk file
             val r2 = RunShell.runCmd(
@@ -64,15 +72,22 @@ class SysModel {
             if (pid == Int.MAX_VALUE) {
                 appendLog("未找到进程!")
             } else if (r2.isEmpty()) {
-                appendLog("kill $pid done\n")
+                appendLog("kill $pid done")
             } else {
                 appendLog(r2)
             }
         }
     }
 
+    fun clearLog() {
+        GlobalScope.launch(Dispatchers.IO) {
+            logLine = 1
+            logText.emit("")
+        }
+    }
+
     private fun appendLog(msg: String) {
         val old = logText.value
-        logText.tryEmit("$old$msg")
+        logText.tryEmit("$old ${logLine++}:$msg")
     }
 }

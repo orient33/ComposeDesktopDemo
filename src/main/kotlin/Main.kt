@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import sysui.sysuiToolsView
+import adbtool.toolRoot
 
-const val DEFAULT_TITLE = "calculator DP - PX"
 
 val vm = Model()
 
@@ -58,6 +58,9 @@ fun App() {
 
                 TAB_SYS -> {
                     sysuiToolsView()
+                }
+                TAB_TOOL -> {
+                    toolRoot()
                 }
             }
         }
